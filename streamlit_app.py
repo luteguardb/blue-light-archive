@@ -13,7 +13,7 @@ st.set_page_config(
 SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/"
     "1LiiTw-ytMjJAtpsd6OqYH5_84yiFBj_v4zTKs1FDDDA"
-    "/export?format=csv&gid=123456789"
+    "/gviz/tq?tqx=out:csv&gid=0"
 )
 
 @st.cache_data(ttl=60)
