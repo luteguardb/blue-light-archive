@@ -1,52 +1,64 @@
 import streamlit as st
 import pandas as pd
-from pathlib import Path
 
-# 페이지 설정
 st.set_page_config(
     page_title="Blue Light Archive",
     page_icon="💡",
     layout="wide"
 )
 
-# 제목
+# -----------------------------
+# Google Sheets
+# -----------------------------
+SHEET_URL = (
+    "https://docs.google.com/spreadsheets/d/"
+    "1LiiTw-ytMjJAtpsd6OqYH5_84yiFBj_v4zTKs1FDDDA"
+    "/export?format=csv&gid=0"
+)
+
+@st.cache_data(ttl=60)
+def load_data():
+    return pd.read_csv(SHEET_URL)
+
+# -----------------------------
+# Header
+# -----------------------------
 st.title("BLUE LIGHT ARCHIVE")
 st.caption("A public archive of blue light exposure data.")
 
-# Excel 파일 자동 찾기
-excel_files = list(Path(".").glob("*.xlsx"))
+# 수동 새로고침
+if st.button("🔄 Refresh data"):
+    st.cache_data.clear()
+    st.rerun()
 
-if not excel_files:
-    st.error("Excel database file was not found.")
+try:
+    df = load_data()
+except Exception as e:
+    st.error("Google Sheets 데이터를 불러오지 못했습니다.")
+    st.error(str(e))
     st.stop()
 
-excel_file = excel_files[0]
-
-# 데이터 읽기
-@st.cache_data
-def load_data(file):
-    return pd.read_excel(file)
-
-df = load_data(excel_file)
-
-# 상단 정보
+# -----------------------------
+# Summary
+# -----------------------------
 col1, col2 = st.columns(2)
 
 with col1:
-    st.metric("Total records", len(df))
+    st.metric("Total records", f"{len(df):,}")
 
 with col2:
     st.metric("Data fields", len(df.columns))
 
 st.divider()
 
-# 검색창
+# -----------------------------
+# Search
+# -----------------------------
 search = st.text_input(
     "🔎 Search the archive",
-    placeholder="Search place, device, distance, environment..."
+    placeholder="장소, 카테고리, 조명, 거리 등을 검색하세요"
 )
 
-# 검색
 filtered_df = df.copy()
 
 if search:
@@ -58,12 +70,13 @@ if search:
         ).any(),
         axis=1
     )
-
     filtered_df = filtered_df[mask]
 
 st.write(f"**{len(filtered_df):,} records found**")
 
-# 데이터 표
+# -----------------------------
+# Database
+# -----------------------------
 st.dataframe(
     filtered_df,
     use_container_width=True,
