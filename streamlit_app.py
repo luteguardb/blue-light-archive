@@ -27,15 +27,9 @@ SHEET_URL = (
 
 @st.cache_data(ttl=60)
 def load_data():
-    # Google Sheet의 1~3행은 제목/주의문
-    # 4번째 행을 실제 column header로 사용
-df = pd.read_csv(SHEET_URL)
-
-    # 완전히 비어 있는 행 제거
+    df = pd.read_csv(SHEET_URL)
     df = df.dropna(how="all")
-
     return df
-
 
 # --------------------------------------------------
 # HEADER
@@ -60,24 +54,17 @@ if st.button("🔄 Refresh data"):
     st.cache_data.clear()
     st.rerun()
 
-
 # --------------------------------------------------
-# LOAD DATA WITH ERROR HANDLING
+# LOAD DATA
 # --------------------------------------------------
 
 try:
     df = load_data()
 
 except Exception as e:
-
-    st.error(
-        "Google Sheets 데이터를 불러오지 못했습니다."
-    )
-
+    st.error("Google Sheets 데이터를 불러오지 못했습니다.")
     st.code(str(e))
-
     st.stop()
-
 
 # --------------------------------------------------
 # SUMMARY
@@ -92,53 +79,32 @@ with col1:
     )
 
 with col2:
-
     if "대분류" in df.columns:
-
-        category_count = (
-            df["대분류"]
-            .dropna()
-            .nunique()
-        )
-
+        category_count = df["대분류"].dropna().nunique()
         st.metric(
             "Categories",
             category_count
         )
-
     else:
-
         st.metric(
             "Categories",
             "-"
         )
 
-
 with col3:
-
     if "장소" in df.columns:
-
-        location_count = (
-            df["장소"]
-            .dropna()
-            .nunique()
-        )
-
+        location_count = df["장소"].dropna().nunique()
         st.metric(
             "Locations",
             location_count
         )
-
     else:
-
         st.metric(
             "Locations",
             "-"
         )
 
-
 st.divider()
-
 
 # --------------------------------------------------
 # SEARCH
@@ -151,7 +117,6 @@ search = st.text_input(
     placeholder="장소, 대분류, 조명 톤, 노출 수준 등을 검색하세요"
 )
 
-
 # --------------------------------------------------
 # FILTERS
 # --------------------------------------------------
@@ -160,10 +125,7 @@ filtered_df = df.copy()
 
 filter_col1, filter_col2 = st.columns(2)
 
-
-# 대분류 필터
 with filter_col1:
-
     if "대분류" in df.columns:
 
         categories = (
@@ -182,16 +144,12 @@ with filter_col1:
         )
 
         if selected_category != "전체":
-
             filtered_df = filtered_df[
                 filtered_df["대분류"].astype(str)
                 == selected_category
             ]
 
-
-# 상대 노출 수준 필터
 with filter_col2:
-
     if "상대 노출 수준" in df.columns:
 
         exposure_levels = (
@@ -202,9 +160,7 @@ with filter_col2:
             .tolist()
         )
 
-        exposure_levels = sorted(
-            exposure_levels
-        )
+        exposure_levels = sorted(exposure_levels)
 
         selected_exposure = st.selectbox(
             "상대 노출 수준",
@@ -212,14 +168,10 @@ with filter_col2:
         )
 
         if selected_exposure != "전체":
-
             filtered_df = filtered_df[
-                filtered_df[
-                    "상대 노출 수준"
-                ].astype(str)
+                filtered_df["상대 노출 수준"].astype(str)
                 == selected_exposure
             ]
-
 
 # --------------------------------------------------
 # TEXT SEARCH
@@ -241,10 +193,7 @@ if search:
         )
     )
 
-    filtered_df = filtered_df[
-        search_mask
-    ]
-
+    filtered_df = filtered_df[search_mask]
 
 # --------------------------------------------------
 # RESULT COUNT
@@ -253,7 +202,6 @@ if search:
 st.write(
     f"**{len(filtered_df):,} records found**"
 )
-
 
 # --------------------------------------------------
 # DATA TABLE
@@ -265,7 +213,6 @@ st.dataframe(
     hide_index=True,
     height=650
 )
-
 
 # --------------------------------------------------
 # FOOTNOTE
