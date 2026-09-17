@@ -27,9 +27,29 @@ SHEET_URL = (
 
 @st.cache_data(ttl=60)
 def load_data():
+
     df = pd.read_csv(SHEET_URL)
+
+    # 완전히 빈 행 제거
     df = df.dropna(how="all")
+
+    # 컬럼명의 앞뒤 공백 제거
+    df.columns = [
+        str(col).strip()
+        for col in df.columns
+    ]
+
+    # 첫 번째 열의 긴 주의문을 "번호"로 변경
+    first_column = df.columns[0]
+
+    df = df.rename(
+        columns={
+            first_column: "번호"
+        }
+    )
+
     return df
+
 
 # --------------------------------------------------
 # HEADER
@@ -44,6 +64,17 @@ st.caption(
 st.write(
     "실내 환경에서의 블루라이트 노출 데이터를 "
     "검색하고 비교할 수 있는 공개 아카이브입니다."
+)
+
+# --------------------------------------------------
+# NOTICE
+# --------------------------------------------------
+
+st.warning(
+    "⚠️ 주의: 아래 블루라이트 값은 현장 실측값이 아니라, "
+    "공개된 조도 기준/현장 조도 자료와 문헌의 실내 청색광-조도 관계를 "
+    "이용한 ‘비교용 추정치’입니다. 실제 수치는 조명 SPD, 색온도, 거리, "
+    "방향, 창문 자연광, 디스플레이 밝기에 따라 크게 달라집니다."
 )
 
 # --------------------------------------------------
@@ -62,8 +93,13 @@ try:
     df = load_data()
 
 except Exception as e:
-    st.error("Google Sheets 데이터를 불러오지 못했습니다.")
+
+    st.error(
+        "Google Sheets 데이터를 불러오지 못했습니다."
+    )
+
     st.code(str(e))
+
     st.stop()
 
 # --------------------------------------------------
@@ -79,26 +115,44 @@ with col1:
     )
 
 with col2:
+
     if "대분류" in df.columns:
-        category_count = df["대분류"].dropna().nunique()
+
+        category_count = (
+            df["대분류"]
+            .dropna()
+            .nunique()
+        )
+
         st.metric(
             "Categories",
             category_count
         )
+
     else:
+
         st.metric(
             "Categories",
             "-"
         )
 
 with col3:
+
     if "장소" in df.columns:
-        location_count = df["장소"].dropna().nunique()
+
+        location_count = (
+            df["장소"]
+            .dropna()
+            .nunique()
+        )
+
         st.metric(
             "Locations",
             location_count
         )
+
     else:
+
         st.metric(
             "Locations",
             "-"
@@ -125,7 +179,9 @@ filtered_df = df.copy()
 
 filter_col1, filter_col2 = st.columns(2)
 
+# 대분류
 with filter_col1:
+
     if "대분류" in df.columns:
 
         categories = (
@@ -144,12 +200,15 @@ with filter_col1:
         )
 
         if selected_category != "전체":
+
             filtered_df = filtered_df[
                 filtered_df["대분류"].astype(str)
                 == selected_category
             ]
 
+# 상대 노출 수준
 with filter_col2:
+
     if "상대 노출 수준" in df.columns:
 
         exposure_levels = (
@@ -168,8 +227,11 @@ with filter_col2:
         )
 
         if selected_exposure != "전체":
+
             filtered_df = filtered_df[
-                filtered_df["상대 노출 수준"].astype(str)
+                filtered_df[
+                    "상대 노출 수준"
+                ].astype(str)
                 == selected_exposure
             ]
 
@@ -193,7 +255,9 @@ if search:
         )
     )
 
-    filtered_df = filtered_df[search_mask]
+    filtered_df = filtered_df[
+        search_mask
+    ]
 
 # --------------------------------------------------
 # RESULT COUNT
@@ -221,7 +285,5 @@ st.dataframe(
 st.divider()
 
 st.caption(
-    "※ 본 데이터는 공개 자료와 조도 기준 등을 기반으로 한 "
-    "스크리닝 추정값을 포함할 수 있으며 실제 현장 측정값과 "
-    "차이가 있을 수 있습니다."
+    "Blue Light Archive · LuteguardB"
 )
