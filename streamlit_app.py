@@ -29,10 +29,7 @@ SHEET_URL = (
 def load_data():
     # Google Sheet의 1~3행은 제목/주의문
     # 4번째 행을 실제 column header로 사용
-    df = pd.read_csv(
-        SHEET_URL,
-        header=3
-    )
+df = pd.read_csv(SHEET_URL)
 
     # 완전히 비어 있는 행 제거
     df = df.dropna(how="all")
